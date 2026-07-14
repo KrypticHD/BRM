@@ -1,0 +1,137 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-sans);
+  --font-heading: var(--font-sans);
+  --color-sidebar-ring: var(--sidebar-ring);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar: var(--sidebar);
+  --color-chart-5: var(--chart-5);
+  --color-chart-4: var(--chart-4);
+  --color-chart-3: var(--chart-3);
+  --color-chart-2: var(--chart-2);
+  --color-chart-1: var(--chart-1);
+  --color-ring: var(--ring);
+  --color-input: var(--input);
+  --color-border: var(--border);
+  --color-destructive: var(--destructive);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-accent: var(--accent);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-muted: var(--muted);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-secondary: var(--secondary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary: var(--primary);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-popover: var(--popover);
+  --color-card-foreground: var(--card-foreground);
+  --color-card: var(--card);
+  --radius-sm: calc(var(--radius) * 0.6);
+  --radius-md: calc(var(--radius) * 0.8);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) * 1.4);
+  --radius-2xl: calc(var(--radius) * 1.8);
+  --radius-3xl: calc(var(--radius) * 2.2);
+  --radius-4xl: calc(var(--radius) * 2.6);
+}
+
+:root {
+  /* BRM brand palette */
+  --brm-cream: #f7f4ec;
+  --brm-sage: #a8b69e;
+  --brm-forest: #234a36;
+  --brm-deep: #0f241a;
+  --brm-stone: #8d9187;
+  --brm-gold: #c9a46a;
+
+  --background: var(--brm-cream);
+  --foreground: var(--brm-deep);
+  --card: #ffffff;
+  --card-foreground: var(--brm-deep);
+  --popover: #ffffff;
+  --popover-foreground: var(--brm-deep);
+  --primary: var(--brm-forest);
+  --primary-foreground: var(--brm-cream);
+  --secondary: var(--brm-sage);
+  --secondary-foreground: var(--brm-deep);
+  --muted: #ede9dd;
+  --muted-foreground: var(--brm-stone);
+  --accent: var(--brm-gold);
+  --accent-foreground: var(--brm-deep);
+  --destructive: oklch(0.577 0.245 27.325);
+  --border: #e3ded0;
+  --input: #e3ded0;
+  --ring: var(--brm-forest);
+  --chart-1: var(--brm-forest);
+  --chart-2: var(--brm-sage);
+  --chart-3: var(--brm-gold);
+  --chart-4: var(--brm-stone);
+  --chart-5: var(--brm-deep);
+  --radius: 0.625rem;
+  --sidebar: #ffffff;
+  --sidebar-foreground: var(--brm-deep);
+  --sidebar-primary: var(--brm-forest);
+  --sidebar-primary-foreground: var(--brm-cream);
+  --sidebar-accent: #eef1e9;
+  --sidebar-accent-foreground: var(--brm-deep);
+  --sidebar-border: #e3ded0;
+  --sidebar-ring: var(--brm-forest);
+}
+
+.dark {
+  --background: var(--brm-deep);
+  --foreground: var(--brm-cream);
+  --card: #16301f;
+  --card-foreground: var(--brm-cream);
+  --popover: #16301f;
+  --popover-foreground: var(--brm-cream);
+  --primary: var(--brm-sage);
+  --primary-foreground: var(--brm-deep);
+  --secondary: var(--brm-forest);
+  --secondary-foreground: var(--brm-cream);
+  --muted: #1c3826;
+  --muted-foreground: var(--brm-sage);
+  --accent: var(--brm-gold);
+  --accent-foreground: var(--brm-deep);
+  --destructive: oklch(0.704 0.191 22.216);
+  --border: oklch(1 0 0 / 10%);
+  --input: oklch(1 0 0 / 15%);
+  --ring: var(--brm-sage);
+  --chart-1: var(--brm-sage);
+  --chart-2: var(--brm-gold);
+  --chart-3: var(--brm-stone);
+  --chart-4: #3a5f47;
+  --chart-5: var(--brm-cream);
+  --sidebar: #16301f;
+  --sidebar-foreground: var(--brm-cream);
+  --sidebar-primary: var(--brm-sage);
+  --sidebar-primary-foreground: var(--brm-deep);
+  --sidebar-accent: #1c3826;
+  --sidebar-accent-foreground: var(--brm-cream);
+  --sidebar-border: oklch(1 0 0 / 10%);
+  --sidebar-ring: var(--brm-sage);
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+  html {
+    @apply font-sans;
+  }
+}
