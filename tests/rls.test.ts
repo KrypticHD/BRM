@@ -129,7 +129,7 @@ describe("Vault broker-credential functions", () => {
 
     const { data: vaultId, error: insertError } = await admin.rpc(
       "insert_broker_credential",
-      { p_secret: plaintext, p_name: "vitest-rls-test" },
+      { p_secret: plaintext, p_name: `vitest-rls-test-${Date.now()}` },
     );
     expect(insertError).toBeNull();
     expect(vaultId).toBeTruthy();
