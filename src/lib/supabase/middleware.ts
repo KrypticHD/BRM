@@ -2,7 +2,7 @@ import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 import { isAllowedEmail } from "@/lib/server/allowlist";
 
-const PUBLIC_PATHS = ["/login", "/auth/callback", "/auth/auth-code-error"];
+const PUBLIC_PATHS = ["/login", "/auth/confirm", "/auth/auth-code-error"];
 
 export async function updateSession(request: NextRequest) {
   let supabaseResponse = NextResponse.next({ request });
