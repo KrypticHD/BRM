@@ -6,13 +6,8 @@ import { signInWithEmail, type SignInState } from "./actions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
+import { BrmLogo } from "@/components/brm-logo";
 
 const initialState: SignInState = { status: "idle" };
 
@@ -37,7 +32,7 @@ function LoginForm() {
           required
         />
       </div>
-      <Button type="submit" disabled={pending}>
+      <Button type="submit" disabled={pending} className="w-full">
         {pending ? "Sending link…" : "Send sign-in link"}
       </Button>
       {notAllowed && (
@@ -62,18 +57,41 @@ function LoginForm() {
 
 export default function LoginPage() {
   return (
-    <main className="flex min-h-full flex-1 items-center justify-center bg-background p-6">
-      <Card className="w-full max-w-sm">
-        <CardHeader>
-          <CardTitle className="text-2xl font-semibold text-primary">
-            BRM
-          </CardTitle>
-          <CardDescription>Sign in with your email to continue.</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <Suspense fallback={null}>
-            <LoginForm />
-          </Suspense>
+    <main className="relative flex min-h-full flex-1 items-center justify-center overflow-hidden bg-background p-6">
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-0"
+        style={{
+          backgroundImage:
+            "radial-gradient(circle at 20% 15%, color-mix(in oklab, var(--brm-sage) 22%, transparent) 0%, transparent 45%), radial-gradient(circle at 85% 80%, color-mix(in oklab, var(--brm-gold) 18%, transparent) 0%, transparent 45%)",
+        }}
+      />
+
+      <Card className="relative w-full max-w-sm border-border/70 shadow-lg">
+        <CardContent className="flex flex-col items-center gap-6 pt-2 text-center">
+          <div className="flex flex-col items-center gap-3">
+            <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-primary text-primary-foreground shadow-sm">
+              <BrmLogo className="h-7 w-7" />
+            </div>
+            <div>
+              <h1 className="text-2xl font-semibold tracking-tight text-primary">
+                BRM
+              </h1>
+              <p className="text-xs font-medium uppercase tracking-[0.2em] text-muted-foreground">
+                Know Your Wealth
+              </p>
+            </div>
+          </div>
+
+          <p className="text-sm text-muted-foreground">
+            Sign in with your email to continue.
+          </p>
+
+          <div className="w-full text-left">
+            <Suspense fallback={null}>
+              <LoginForm />
+            </Suspense>
+          </div>
         </CardContent>
       </Card>
     </main>
