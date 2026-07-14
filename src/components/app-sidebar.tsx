@@ -1,3 +1,7 @@
+"use client";
+
+import Link from "next/link";
+import { usePathname } from "next/navigation";
 import {
   Home,
   Landmark,
@@ -15,7 +19,7 @@ import { Button } from "@/components/ui/button";
 import { signOut } from "@/app/(app)/actions";
 
 const NAV_ITEMS = [
-  { label: "Overview", icon: Home, href: "/", active: true },
+  { label: "Overview", icon: Home, href: "/" },
   { label: "Portfolio", icon: Landmark, href: null },
   { label: "Holdings", icon: Layers, href: null },
   { label: "Performance", icon: TrendingUp, href: null },
@@ -24,10 +28,12 @@ const NAV_ITEMS = [
   { label: "Goals", icon: Target, href: null },
   { label: "Reports", icon: FileText, href: null },
   { label: "Watchlist", icon: Eye, href: null },
-  { label: "Settings", icon: Settings, href: null },
+  { label: "Settings", icon: Settings, href: "/settings" },
 ];
 
 export function AppSidebar({ email }: { email: string }) {
+  const pathname = usePathname();
+
   return (
     <aside className="flex h-full w-64 shrink-0 flex-col border-r border-sidebar-border bg-sidebar px-4 py-6">
       <div className="flex items-center gap-2 px-2 text-primary">
@@ -36,13 +42,16 @@ export function AppSidebar({ email }: { email: string }) {
       </div>
 
       <nav className="mt-8 flex flex-1 flex-col gap-1">
-        {NAV_ITEMS.map(({ label, icon: Icon, href, active }) => {
+        {NAV_ITEMS.map(({ label, icon: Icon, href }) => {
+          const active = href !== null && pathname === href;
           const content = (
             <span
               className={`flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition-colors ${
                 active
                   ? "bg-sidebar-primary text-sidebar-primary-foreground font-medium"
-                  : "text-sidebar-foreground/50"
+                  : href
+                    ? "text-sidebar-foreground hover:bg-sidebar-accent"
+                    : "text-sidebar-foreground/50"
               }`}
             >
               <Icon className="h-4 w-4" strokeWidth={1.75} />
@@ -59,9 +68,9 @@ export function AppSidebar({ email }: { email: string }) {
           }
 
           return (
-            <a key={label} href={href}>
+            <Link key={label} href={href}>
               {content}
-            </a>
+            </Link>
           );
         })}
       </nav>

@@ -32,19 +32,24 @@ export function computeUnrealisedPlGbp(
 }
 
 /**
- * Account value = GBP cash + market value of positions. Cash balances in
- * other currencies are not converted here — FX-aware valuation is out of
- * scope until price_snapshots/fx_rates exist (Session 6+); callers with
- * multi-currency cash should convert to GBP before calling this.
+ * Account value = base-currency cash + market value of positions. Cash
+ * balances in currencies other than baseCurrency are not converted here —
+ * FX-aware valuation is out of scope until price_snapshots/fx_rates exist
+ * (Session 6+); callers with genuinely multi-currency cash should convert
+ * to baseCurrency before calling this. baseCurrency defaults to "GBP" but
+ * must be passed explicitly for accounts denominated in another currency
+ * (e.g. a non-UK Trading 212 demo account) — otherwise their cash is
+ * silently excluded and the total comes out as just the market value.
  */
 export function computeAccountValueGbp(
   cashBalances: CashBalance[],
   holdings: HoldingPosition[],
   prices: PriceMap,
+  baseCurrency: string = "GBP",
 ): Decimal {
-  const cashGbp = cashBalances
-    .filter((balance) => balance.currency === "GBP")
+  const cashInBaseCurrency = cashBalances
+    .filter((balance) => balance.currency === baseCurrency)
     .reduce((total, balance) => total.plus(balance.amount), new Decimal(0));
 
-  return cashGbp.plus(computeMarketValueGbp(holdings, prices));
+  return cashInBaseCurrency.plus(computeMarketValueGbp(holdings, prices));
 }
