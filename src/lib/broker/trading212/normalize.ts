@@ -15,6 +15,10 @@ export interface NormalizedLeg {
   legType: "asset" | "cash" | "fee";
   /** Ticker string (e.g. "AAPL_US_EQ") for asset legs; null otherwise. */
   ticker: string | null;
+  /** ISIN, when the source provides one — preferred over ticker for asset
+   * matching per ARCHITECTURE.md (a ticker alone isn't a stable identity
+   * across brokers/exchanges). Only the CSV export and order fills carry it. */
+  isin: string | null;
   currency: string;
   quantityDelta: number | null;
   cashDelta: number | null;
@@ -64,6 +68,7 @@ export function normalizeOrder(
     {
       legType: "asset",
       ticker: order.ticker,
+      isin: order.instrument.isin,
       currency: legCurrency,
       quantityDelta: fill.quantity,
       cashDelta: null,
@@ -72,6 +77,7 @@ export function normalizeOrder(
     {
       legType: "cash",
       ticker: null,
+      isin: null,
       currency: legCurrency,
       quantityDelta: null,
       cashDelta: isBuy ? -grossValue : grossValue,
@@ -83,6 +89,7 @@ export function normalizeOrder(
     legs.push({
       legType: "fee",
       ticker: null,
+      isin: null,
       currency: legCurrency,
       quantityDelta: null,
       cashDelta: -feeTotal,
@@ -119,6 +126,7 @@ export function normalizeDividend(
       {
         legType: "cash",
         ticker: null,
+        isin: null,
         currency,
         quantityDelta: null,
         cashDelta: dividend.amount,
@@ -152,6 +160,7 @@ export function normalizeTransaction(
       {
         legType: transaction.type === "FEE" ? "fee" : "cash",
         ticker: null,
+        isin: null,
         currency,
         quantityDelta: null,
         cashDelta: transaction.amount,

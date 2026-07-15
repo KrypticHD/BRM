@@ -1,123 +1,9 @@
 import "server-only";
-import crypto from "node:crypto";
 import { createAdminClient } from "@/lib/server/supabase-admin";
 import { getBrokerCredential } from "@/lib/server/broker-credentials";
 import { Trading212Client, decodeTrading212Credential } from "./client";
-import {
-  normalizeDividend,
-  normalizeOrder,
-  normalizeTransaction,
-  type NormalizedTransaction,
-} from "./normalize";
-
-type AdminClient = ReturnType<typeof createAdminClient>;
-
-function hashPayload(payload: unknown): string {
-  return crypto.createHash("sha256").update(JSON.stringify(payload)).digest("hex");
-}
-
-async function resolveAssetId(admin: AdminClient, ticker: string): Promise<string> {
-  const { data: existing } = await admin
-    .from("asset_identifiers")
-    .select("asset_id")
-    .eq("identifier_type", "t212_ticker")
-    .eq("identifier_value", ticker)
-    .maybeSingle();
-
-  if (existing) return existing.asset_id as string;
-
-  const { data: asset, error: assetError } = await admin
-    .from("assets")
-    .insert({ canonical_name: ticker, asset_type: "equity", primary_currency: "GBP" })
-    .select()
-    .single();
-  if (assetError) throw assetError;
-
-  const { error: identifierError } = await admin.from("asset_identifiers").insert({
-    asset_id: asset.id,
-    identifier_type: "t212_ticker",
-    identifier_value: ticker,
-    source: "trading212",
-  });
-  if (identifierError) throw identifierError;
-
-  return asset.id as string;
-}
-
-/**
- * Writes the raw broker payload before any normalisation, per CLAUDE.md's
- * data-integrity rule. Returns null (not an error) when the dedup unique
- * indexes from the Session 2 migration reject the insert as a duplicate —
- * that's the mechanism that makes re-syncing idempotent.
- */
-async function writeSourceEvent(
-  admin: AdminClient,
-  params: {
-    accountId: string;
-    connectionId: string;
-    externalId: string | null;
-    eventType: string;
-    rawPayload: unknown;
-    occurredAt: string;
-  },
-): Promise<string | null> {
-  const { data, error } = await admin
-    .from("source_events")
-    .insert({
-      account_id: params.accountId,
-      connection_id: params.connectionId,
-      source: "trading212",
-      external_id: params.externalId,
-      event_type: params.eventType,
-      raw_payload: params.rawPayload,
-      occurred_at: params.occurredAt,
-      payload_hash: hashPayload(params.rawPayload),
-      processing_status: "pending",
-    })
-    .select()
-    .single();
-
-  if (error) {
-    if (error.code === "23505") return null;
-    throw error;
-  }
-
-  return data.id as string;
-}
-
-async function writeNormalizedTransaction(
-  admin: AdminClient,
-  params: { accountId: string; sourceEventId: string; normalized: NormalizedTransaction },
-): Promise<void> {
-  const { data: transaction, error: txError } = await admin
-    .from("transactions")
-    .insert({
-      account_id: params.accountId,
-      type: params.normalized.transactionType,
-      executed_at: params.normalized.executedAt,
-      source_event_id: params.sourceEventId,
-      external_ref: params.normalized.externalRef,
-      status: "settled",
-    })
-    .select()
-    .single();
-  if (txError) throw txError;
-
-  const legRows = await Promise.all(
-    params.normalized.legs.map(async (leg) => ({
-      transaction_id: transaction.id,
-      asset_id: leg.ticker ? await resolveAssetId(admin, leg.ticker) : null,
-      currency: leg.currency,
-      quantity_delta: leg.quantityDelta,
-      cash_delta: leg.cashDelta,
-      gbp_value: leg.gbpValue,
-      leg_type: leg.legType,
-    })),
-  );
-
-  const { error: legsError } = await admin.from("transaction_legs").insert(legRows);
-  if (legsError) throw legsError;
-}
+import { normalizeDividend, normalizeOrder, normalizeTransaction } from "./normalize";
+import { writeSourceEvent, writeNormalizedTransaction } from "./writeHelpers";
 
 export interface SyncResult {
   ordersSynced: number;
@@ -174,6 +60,8 @@ export async function syncTrading212Connection(connectionId: string): Promise<Sy
     await writeSourceEvent(admin, {
       accountId: account.id,
       connectionId,
+      importId: null,
+      source: "trading212",
       externalId: null,
       eventType: "account_snapshot",
       rawPayload: { cash, positions },
@@ -184,6 +72,8 @@ export async function syncTrading212Connection(connectionId: string): Promise<Sy
       const sourceEventId = await writeSourceEvent(admin, {
         accountId: account.id,
         connectionId,
+        importId: null,
+        source: "trading212",
         externalId: String(order.order.id),
         eventType: "order",
         rawPayload: order,
@@ -208,6 +98,8 @@ export async function syncTrading212Connection(connectionId: string): Promise<Sy
       const sourceEventId = await writeSourceEvent(admin, {
         accountId: account.id,
         connectionId,
+        importId: null,
+        source: "trading212",
         externalId: dividend.reference,
         eventType: "dividend",
         rawPayload: dividend,
@@ -230,6 +122,8 @@ export async function syncTrading212Connection(connectionId: string): Promise<Sy
       const sourceEventId = await writeSourceEvent(admin, {
         accountId: account.id,
         connectionId,
+        importId: null,
+        source: "trading212",
         externalId: transaction.reference,
         eventType: "cash_transaction",
         rawPayload: transaction,

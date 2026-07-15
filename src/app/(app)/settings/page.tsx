@@ -1,13 +1,19 @@
 import { createClient } from "@/lib/supabase/server";
 import { ConnectTrading212Form } from "@/components/settings/connect-form";
 import { ConnectionCard } from "@/components/settings/connection-card";
+import { CsvImportForm } from "@/components/settings/csv-import-form";
 
 export default async function SettingsPage() {
   const supabase = await createClient();
-  const { data: connections } = await supabase
-    .from("broker_connections")
-    .select("id, environment, status, last_synced_at, last_successful_sync_at, last_error_message")
-    .order("created_at", { ascending: false });
+  const [{ data: connections }, { data: accounts }] = await Promise.all([
+    supabase
+      .from("broker_connections")
+      .select(
+        "id, environment, status, last_synced_at, last_successful_sync_at, last_error_message",
+      )
+      .order("created_at", { ascending: false }),
+    supabase.from("accounts").select("id, name").order("created_at", { ascending: false }),
+  ]);
 
   return (
     <div className="flex h-full flex-col">
@@ -23,6 +29,7 @@ export default async function SettingsPage() {
           <ConnectionCard key={connection.id} connection={connection} />
         ))}
         <ConnectTrading212Form />
+        <CsvImportForm accounts={accounts ?? []} />
       </div>
     </div>
   );
