@@ -201,6 +201,11 @@ describe("normalizeDividend", () => {
     expect(result.legs[0].cashDelta).toBe(12.34);
   });
 
+  it("strips the dividend endpoint's exchange suffix from the ticker (real API inconsistency: orders report \"NVDA\", dividends report \"NVDA_US_EQ\" for the same instrument)", () => {
+    const result = normalizeDividend(mkDividend({ ticker: "NVDA_US_EQ" }));
+    expect(result.legs[0].ticker).toBe("NVDA");
+  });
+
   it("classifies INTEREST_* dividend types as interest", () => {
     const result = normalizeDividend(
       mkDividend({ type: "INTEREST_PAID_BY_US_OBLIGORS", amount: 3.2 }),

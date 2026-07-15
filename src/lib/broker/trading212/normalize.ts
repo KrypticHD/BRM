@@ -115,6 +115,13 @@ export function normalizeOrder(
  * writeNormalizedTransaction resolves an asset_id for any leg carrying
  * a ticker/isin regardless of legType, but the ledger engine only reads
  * asset_id off legType==='asset' legs, so this has no effect on holdings.
+ *
+ * Confirmed against a real account: the dividends endpoint reports
+ * tickers with an exchange suffix (e.g. "NVDA_US_EQ") that the
+ * orders/portfolio endpoints don't ("NVDA") for the exact same
+ * instrument — a genuine T212 API inconsistency, not a typo. Stripping
+ * the suffix here means dividends resolve to the same asset orders
+ * already created instead of spawning a duplicate.
  */
 export function normalizeDividend(
   dividend: T212Dividend,
@@ -131,7 +138,7 @@ export function normalizeDividend(
     legs: [
       {
         legType: "cash",
-        ticker: dividend.ticker,
+        ticker: dividend.ticker.split("_")[0],
         isin: null,
         currency,
         quantityDelta: null,
