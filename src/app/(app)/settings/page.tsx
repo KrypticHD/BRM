@@ -3,6 +3,7 @@ import { ConnectTrading212Form } from "@/components/settings/connect-form";
 import { ConnectionCard } from "@/components/settings/connection-card";
 import { CsvImportForm } from "@/components/settings/csv-import-form";
 import { PriceSyncStatus } from "@/components/settings/price-sync-status";
+import { ManualEntryForm } from "@/components/settings/manual-entry-form";
 
 export default async function SettingsPage() {
   const supabase = await createClient();
@@ -32,6 +33,7 @@ export default async function SettingsPage() {
         ))}
         <ConnectTrading212Form />
         <CsvImportForm accounts={accounts ?? []} />
+        <ManualEntryForm accounts={accounts ?? []} />
       </div>
     </div>
   );
