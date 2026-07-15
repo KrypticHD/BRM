@@ -33,8 +33,11 @@ export const T212PositionSchema = z.object({
   currentPrice: z.number(),
   fxPpl: z.number().nullable(),
   initialFillDate: z.string(),
-  maxBuy: z.number(),
-  maxSell: z.number(),
+  // Confirmed nullable against a real live account with 57 positions —
+  // many came back null (likely fractional/restricted-liquidity
+  // positions where the broker can't quote a max sellable/buyable size).
+  maxBuy: z.number().nullable(),
+  maxSell: z.number().nullable(),
   pieQuantity: z.number(),
   ppl: z.number(),
   quantity: z.number(),
