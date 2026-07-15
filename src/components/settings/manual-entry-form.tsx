@@ -42,6 +42,7 @@ const initialState: ManualEntryState = { status: "idle" };
 export function ManualEntryForm({ accounts }: { accounts: Account[] }) {
   const [state, formAction, pending] = useActionState(submitManualEntry, initialState);
   const [type, setType] = useState("buy");
+  const [accountId, setAccountId] = useState(accounts[0]?.id ?? "");
   const needsQuantity = NEEDS_QUANTITY.has(type);
 
   return (
@@ -58,7 +59,11 @@ export function ManualEntryForm({ accounts }: { accounts: Account[] }) {
           <div className="grid grid-cols-2 gap-4">
             <div className="flex flex-col gap-2">
               <Label htmlFor="accountId">Account</Label>
-              <Select name="accountId" defaultValue={accounts[0]?.id}>
+              <Select
+                name="accountId"
+                value={accountId}
+                onValueChange={(v) => setAccountId(v ?? "")}
+              >
                 <SelectTrigger id="accountId" className="w-full">
                   <SelectValue placeholder="Select account" />
                 </SelectTrigger>
