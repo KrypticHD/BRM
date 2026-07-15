@@ -21,10 +21,10 @@ import { signOut } from "@/app/(app)/actions";
 const NAV_ITEMS = [
   { label: "Overview", icon: Home, href: "/" },
   { label: "Portfolio", icon: Landmark, href: null },
-  { label: "Holdings", icon: Layers, href: null },
+  { label: "Holdings", icon: Layers, href: "/holdings" },
   { label: "Performance", icon: TrendingUp, href: null },
-  { label: "Transactions", icon: ArrowLeftRight, href: null },
-  { label: "Dividends", icon: Coins, href: null },
+  { label: "Transactions", icon: ArrowLeftRight, href: "/transactions" },
+  { label: "Dividends", icon: Coins, href: "/dividends" },
   { label: "Goals", icon: Target, href: null },
   { label: "Reports", icon: FileText, href: null },
   { label: "Watchlist", icon: Eye, href: null },
