@@ -113,7 +113,7 @@ describe("runPriceSnapshot", () => {
       .eq("asset_id", assetId);
     expect(snapshots).toHaveLength(1); // one row per (asset_id, date), not accumulating
     expect(Number(snapshots![0].close_price)).toBe(999.99);
-  });
+  }, 15000); // two real Frankfurter round-trips + DB writes
 
   it("also writes GBP/USD/EUR fx_rates", async () => {
     await runPriceSnapshot(makeStubProvider(1));
