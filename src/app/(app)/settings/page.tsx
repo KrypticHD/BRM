@@ -2,6 +2,7 @@ import { createClient } from "@/lib/supabase/server";
 import { ConnectTrading212Form } from "@/components/settings/connect-form";
 import { ConnectionCard } from "@/components/settings/connection-card";
 import { CsvImportForm } from "@/components/settings/csv-import-form";
+import { PriceSyncStatus } from "@/components/settings/price-sync-status";
 
 export default async function SettingsPage() {
   const supabase = await createClient();
@@ -25,6 +26,7 @@ export default async function SettingsPage() {
       </header>
 
       <div className="flex flex-col gap-6 p-8 max-w-xl">
+        <PriceSyncStatus />
         {(connections ?? []).map((connection) => (
           <ConnectionCard key={connection.id} connection={connection} />
         ))}
