@@ -7,24 +7,29 @@ export interface SnapshotResult {
   pricesWritten: number;
   pricesSkippedNoSymbol: number;
   pricesFailed: number;
+  pricesDeferred: number;
   fxRatesWritten: number;
 }
 
 /**
- * Fetches a closing price for every held asset that has a resolved
- * provider symbol (asset_identifiers, identifier_type='vendor_symbol',
- * source=provider.name — populated by the coverage-check script) and
- * upserts into price_snapshots, plus GBP/USD/EUR FX rates into fx_rates.
- * Upsert on the (asset_id, date) / (date, from_ccy, to_ccy) unique keys
- * makes this safe to retry within the scheduled hour, per CLAUDE.md's
- * cron idempotency rule.
+ * Vercel Hobby caps Serverless Function duration at 300s, and Twelve
+ * Data's free tier paces to ~8s/request — a holdings list bigger than
+ * ~35 assets can't be fully refreshed in a single run. Rather than fail
+ * outright or always process the same prefix of the list (starving
+ * whatever sorts last), stop with time to spare and process the
+ * *stalest* assets first each run, so multi-day rotation still reaches
+ * full coverage instead of some assets never updating.
  */
+const TIME_BUDGET_MS = 270_000; // 270s, leaving headroom under the 300s cap
+
 export async function runPriceSnapshot(provider: PriceProvider): Promise<SnapshotResult> {
   const admin = createAdminClient();
+  const startedAt = Date.now();
   const result: SnapshotResult = {
     pricesWritten: 0,
     pricesSkippedNoSymbol: 0,
     pricesFailed: 0,
+    pricesDeferred: 0,
     fxRatesWritten: 0,
   };
 
@@ -52,12 +57,38 @@ export async function runPriceSnapshot(provider: PriceProvider): Promise<Snapsho
     (identifiers ?? []).map((row) => [row.asset_id as string, row.identifier_value as string]),
   );
 
-  for (const assetId of assetIds) {
-    const symbol = symbolByAssetId.get(assetId);
-    if (!symbol) {
-      result.pricesSkippedNoSymbol += 1;
+  const priceableAssetIds = assetIds.filter((id) => symbolByAssetId.has(id));
+  result.pricesSkippedNoSymbol = assetIds.length - priceableAssetIds.length;
+
+  // Oldest (or never-priced) snapshot first, so a time-budget cutoff
+  // rotates through the full list across runs instead of always
+  // processing the same assets and starving the rest.
+  const { data: latestSnapshots } = await admin
+    .from("price_snapshots")
+    .select("asset_id, date")
+    .in("asset_id", priceableAssetIds.length > 0 ? priceableAssetIds : ["00000000-0000-0000-0000-000000000000"])
+    .order("date", { ascending: false });
+
+  const lastPricedDate = new Map<string, string>();
+  for (const row of latestSnapshots ?? []) {
+    if (!lastPricedDate.has(row.asset_id as string)) {
+      lastPricedDate.set(row.asset_id as string, row.date as string);
+    }
+  }
+
+  const orderedAssetIds = [...priceableAssetIds].sort((a, b) => {
+    const dateA = lastPricedDate.get(a) ?? "";
+    const dateB = lastPricedDate.get(b) ?? "";
+    return dateA.localeCompare(dateB); // "" (never priced) sorts first
+  });
+
+  for (const assetId of orderedAssetIds) {
+    if (Date.now() - startedAt > TIME_BUDGET_MS) {
+      result.pricesDeferred += 1;
       continue;
     }
+
+    const symbol = symbolByAssetId.get(assetId)!;
 
     const { data: asset } = await admin
       .from("assets")

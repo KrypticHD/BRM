@@ -2,9 +2,12 @@ import { NextResponse } from "next/server";
 import { runPriceSnapshot } from "@/lib/pricing/snapshot";
 import { getConfiguredEquityProvider } from "@/lib/pricing/providerFactory";
 
-// Twelve Data's free-tier pacing (8 req/min) means ~60 held assets can
-// take 7-8 minutes to fetch sequentially — well past the platform default.
-export const maxDuration = 800;
+// 300 is the maximum allowed on Vercel's Hobby plan. Twelve Data's
+// free-tier pacing (8 req/min) means a ~60-asset holdings list can't
+// fully refresh in one run at that cap — runPriceSnapshot's own time
+// budget (270s) stops early and rotates through the stalest assets
+// first across runs rather than exceeding this and getting killed.
+export const maxDuration = 300;
 
 /**
  * Vercel Hobby cron fires at most once/day, anywhere within the scheduled
