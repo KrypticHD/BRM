@@ -2,7 +2,12 @@ import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 import { isAllowedEmail } from "@/lib/server/allowlist";
 
-const PUBLIC_PATHS = ["/login", "/auth/confirm", "/auth/auth-code-error"];
+// /api/cron/* authenticates itself via CRON_SECRET — it's invoked
+// server-to-server by Vercel with no user session at all, and was
+// getting silently redirected to /login before ever reaching that check.
+// Scoped narrowly to cron routes, not all of /api, since other API
+// routes should still go through the session/allowlist gate.
+const PUBLIC_PATHS = ["/login", "/auth/confirm", "/auth/auth-code-error", "/api/cron"];
 
 export async function updateSession(request: NextRequest) {
   let supabaseResponse = NextResponse.next({ request });

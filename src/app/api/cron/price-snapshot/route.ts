@@ -2,6 +2,10 @@ import { NextResponse } from "next/server";
 import { runPriceSnapshot } from "@/lib/pricing/snapshot";
 import { getConfiguredEquityProvider } from "@/lib/pricing/providerFactory";
 
+// Twelve Data's free-tier pacing (8 req/min) means ~60 held assets can
+// take 7-8 minutes to fetch sequentially — well past the platform default.
+export const maxDuration = 800;
+
 /**
  * Vercel Hobby cron fires at most once/day, anywhere within the scheduled
  * hour, UTC only (see vercel.json — scheduled generously rather than
