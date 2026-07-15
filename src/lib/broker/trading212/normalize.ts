@@ -107,8 +107,14 @@ export function normalizeOrder(
 
 /**
  * Dividend-endpoint items also cover interest income (DIVIDEND_TYPE
- * includes INTEREST/INTEREST_PAID_BY_US_OBLIGORS/etc.) — no asset leg,
- * cash-only.
+ * includes INTEREST/INTEREST_PAID_BY_US_OBLIGORS/etc.) — no asset leg
+ * (a dividend doesn't change quantity, so it must never be picked up by
+ * computeHoldings' asset-leg filter). The ticker is still attached to
+ * the cash leg as informational metadata only, purely so the asset gets
+ * resolved and the Dividends UI can show which stock paid it —
+ * writeNormalizedTransaction resolves an asset_id for any leg carrying
+ * a ticker/isin regardless of legType, but the ledger engine only reads
+ * asset_id off legType==='asset' legs, so this has no effect on holdings.
  */
 export function normalizeDividend(
   dividend: T212Dividend,
@@ -125,7 +131,7 @@ export function normalizeDividend(
     legs: [
       {
         legType: "cash",
-        ticker: null,
+        ticker: dividend.ticker,
         isin: null,
         currency,
         quantityDelta: null,

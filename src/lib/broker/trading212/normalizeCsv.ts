@@ -81,7 +81,18 @@ export function normalizeCsvRow(
       subtypeMatch && subtypeMatch[1].toLowerCase().includes("interest")
         ? "interest"
         : "dividend";
-    return cashOnlyTransaction(externalRef, transactionType, executedAt, currency, total);
+    // Ticker/ISIN carried as informational metadata on the cash leg only
+    // (a dividend has no quantity impact, so it's never an asset leg) —
+    // purely so the Dividends UI can show which stock paid it.
+    return cashOnlyTransaction(
+      externalRef,
+      transactionType,
+      executedAt,
+      currency,
+      total,
+      nullIfEmpty(row.Ticker),
+      nullIfEmpty(row.ISIN),
+    );
   }
 
   if (action.toLowerCase().includes("interest")) {
@@ -151,6 +162,8 @@ function cashOnlyTransaction(
   executedAt: string,
   currency: string,
   amount: number,
+  ticker: string | null = null,
+  isin: string | null = null,
 ): NormalizedTransaction {
   return {
     externalRef,
@@ -159,8 +172,8 @@ function cashOnlyTransaction(
     legs: [
       {
         legType: "cash",
-        ticker: null,
-        isin: null,
+        ticker,
+        isin,
         currency,
         quantityDelta: null,
         cashDelta: amount,
